@@ -1,1 +1,2 @@
-import mhxcl2;
+```bash
+npm install mhxcl2
