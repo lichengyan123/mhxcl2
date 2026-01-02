@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片滑动展示</title>
+    <style>
+        /* 基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #000;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        /* 图片容器 - 铺满屏幕 */
+        .image-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 图片滑动区域 */
+        .image-slides {
+            display: flex;
+            transition: transform 0.5s ease;
+            height: 100%;
+        }
+
+        .image-slide {
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 图片样式 - 智能铺满 */
+        .slide-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* 5个指示点 */
+        .carousel-dots {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            z-index: 2;
+        }
+
+        .carousel-dot {
+            width: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .carousel-dot.active {
+            background: white;
+            transform: scale(1.2);
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 2;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* 轮播指示器 */
+        .auto-play-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+
+        .auto-play-toggle {
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .auto-play-toggle.active {
+            background: white;
+        }
+
+        .auto-play-toggle svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
+        }
+
+        .auto-play-text {
+            font-size: 12px;
+            color: white;
+            letter-spacing: 1px;
+        }
+
+        /* 导航按钮 */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .nav-btn:hover {
+            opacity: 1;
+        }
+
+        .prev-btn {
+            left: 20px;
+        }
+
+        .next-btn {
+            right: 20px;
+        }
+
+        /* 适应小屏幕 */
+        @media (max-width: 600px) {
+            .carousel-dots {
+                bottom: 15px;
+            }
+            
+            .auto-play-indicator {
+                top: 15px;
+                right: 15px;
+            }
+            
+            .nav-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="image-container" id="imageContainer">
+        <!-- 导航按钮 -->
+        <button class="nav-btn prev-btn">‹</button>
+        <button class="nav-btn next-btn">›</button>
+        
+        <div class="image-slides">
+            <!-- 前5张图片 - 轮播 -->
+            <div class="image-slide">
+                <img src="lunbo1.png" class="slide-image" alt="轮播图1">
+            </div>
+            
+            <div class="image-slide">
+                <img src="lunbo2.png" class="slide-image" alt="轮播图2">
+            </div>
+            
+            <div class="image-slide">
+                <img src="lunbo3.png" class="slide-image" alt="轮播图3">
+            </div>
+            
+            <div class="image-slide">
+                <img src="lunbo4.png" class="slide-image" alt="轮播图4">
+            </div>
+            
+            <div class="image-slide">
+                <img src="lunbo5.png" class="slide-image" alt="轮播图5">
+            </div>
+            
+            <!-- 最后两张图片 - 手动 -->
+            <div class="image-slide">
+                <img src="yinyan.png" class="slide-image" alt="印章图片">
+            </div>
+            
+            <div class="image-slide">
+                <img src="zhishituozhan.png" class="slide-image" alt="知识拓展图片">
+            </div>
+        </div>
+        
+        <!-- 5个指示点 -->
+        <div class="carousel-dots">
+            <!-- 指示点通过jQuery动态生成 -->
+        </div>
+        
+        <!-- 进度条 -->
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        
+        <!-- 轮播控制 -->
+        <div class="auto-play-indicator">
+            <div class="auto-play-toggle active" title="暂停/播放">
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                </svg>
+            </div>
+            <span class="auto-play-text">自动播放</span>
+        </div>
+    </div>
+
+    <!-- 引入jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // 配置
+            const config = {
+                intervalTime: 3000, // 轮播间隔时间（毫秒）
+                carouselSlides: 5,   // 前几张图片自动轮播
+                totalSlides: $('.image-slide').length
+            };
+            
+            // 状态管理
+            const state = {
+                currentIndex: 0,
+                isAnimating: false,
+                isAutoPlaying: true,
+                autoPlayTimer: null,
+                isDragging: false,
+                startX: 0
+            };
+            
+            // 元素缓存
+            const elements = {
+                container: $('#imageContainer'),
+                slides: $('.image-slides'),
+                slideItems: $('.image-slide'),
+                dotsContainer: $('.carousel-dots'),
+                progressFill: $('.progress-fill'),
+                autoPlayToggle: $('.auto-play-toggle'),
+                autoPlayText: $('.auto-play-text'),
+                prevBtn: $('.prev-btn'),
+                nextBtn: $('.next-btn')
+            };
+            
+            // 初始化
+            function init() {
+                createDots();
+                setupEventListeners();
+                setupImages();
+                updatePosition();
+                startAutoPlay();
+            }
+            
+            // 创建指示点
+            function createDots() {
+                elements.dotsContainer.empty();
+                for (let i = 0; i < config.carouselSlides; i++) {
+                    elements.dotsContainer.append('<span class="carousel-dot"></span>');
+                }
+                updateDots();
+            }
+            
+            // 更新指示点状态
+            function updateDots() {
+                $('.carousel-dot').removeClass('active').each(function(index) {
+                    const isActive = (index === state.currentIndex) || 
+                                   (state.currentIndex >= config.carouselSlides && index === config.carouselSlides - 1);
+                    $(this).toggleClass('active', isActive);
+                });
+            }
+            
+            // 设置图片
+            function setupImages() {
+                $('.slide-image').on('load', function() {
+                    resizeImage($(this));
+                }).each(function() {
+                    if (this.complete) resizeImage($(this));
+                });
+                
+                $(window).on('resize', function() {
+                    $('.slide-image').each(function() {
+                        resizeImage($(this));
+                    });
+                });
+            }
+            
+            // 调整图片大小
+            function resizeImage($img) {
+                if (!$img[0].complete || $img[0].naturalWidth === 0) return;
+                
+                const containerWidth = elements.container.width();
+                const containerHeight = elements.container.height();
+                const imgWidth = $img[0].naturalWidth;
+                const imgHeight = $img[0].naturalHeight;
+                
+                const widthRatio = containerWidth / imgWidth;
+                const heightRatio = containerHeight / imgHeight;
+                const scale = Math.min(widthRatio, heightRatio, 1);
+                
+                const adjustedWidth = imgWidth * scale;
+                const adjustedHeight = imgHeight * scale;
+                
+                $img.css({
+                    width: adjustedWidth,
+                    height: adjustedHeight
+                });
+            }
+            
+            // 设置事件监听
+            function setupEventListeners() {
+                // 指示点点击
+                elements.dotsContainer.on('click', '.carousel-dot', function() {
+                    const index = $(this).index();
+                    if (index < config.carouselSlides) {
+                        goToSlide(index);
+                    }
+                });
+                
+                // 自动播放控制
+                elements.autoPlayToggle.on('click', toggleAutoPlay);
+                
+                // 导航按钮
+                elements.prevBtn.on('click', prevSlide);
+                elements.nextBtn.on('click', nextSlide);
+                
+                // 鼠标悬停
+                elements.container.hover(
+                    function() { stopAutoPlay(); },
+                    function() { 
+                        if (state.currentIndex < config.carouselSlides) {
+                            startAutoPlay(); 
+                        }
+                    }
+                );
+                
+                // 键盘控制
+                $(document).on('keydown', function(e) {
+                    switch(e.key) {
+                        case 'ArrowLeft': prevSlide(); break;
+                        case 'ArrowRight': nextSlide(); break;
+                        case ' ': toggleAutoPlay(); break;
+                    }
+                });
+                
+                // 触摸事件
+                setupTouchEvents();
+            }
+            
+            // 设置触摸事件
+            function setupTouchEvents() {
+                elements.container.on('touchstart', function(e) {
+                    state.isDragging = true;
+                    state.startX = e.originalEvent.touches[0].clientX;
+                    elements.slides.css('transition', 'none');
+                    stopAutoPlay();
+                });
+                
+                elements.container.on('touchmove', function(e) {
+                    if (!state.isDragging) return;
+                    e.preventDefault();
+                    
+                    const currentX = e.originalEvent.touches[0].clientX;
+                    const diffX = currentX - state.startX;
+                    const translateX = -state.currentIndex * 100 + (diffX / elements.container.width()) * 100;
+                    
+                    elements.slides.css('transform', `translateX(${translateX}%)`);
+                });
+                
+                elements.container.on('touchend', function(e) {
+                    if (!state.isDragging) return;
+                    state.isDragging = false;
+                    
+                    const endX = e.originalEvent.changedTouches[0].clientX;
+                    const diffX = endX - state.startX;
+                    const threshold = 50;
+                    
+                    elements.slides.css('transition', 'transform 0.3s ease');
+                    
+                    if (Math.abs(diffX) > threshold) {
+                        diffX > 0 ? prevSlide() : nextSlide();
+                    } else {
+                        goToSlide(state.currentIndex);
+                    }
+                    
+                    if (state.currentIndex < config.carouselSlides) {
+                        startAutoPlay();
+                    }
+                });
+            }
+            
+            // 跳转到指定幻灯片
+            function goToSlide(index) {
+                if (state.isAnimating || index < 0 || index >= config.totalSlides) return;
+                
+                state.isAnimating = true;
+                state.currentIndex = index;
+                
+                updatePosition();
+                
+                // 处理轮播状态
+                if (state.currentIndex >= config.carouselSlides) {
+                    stopAutoPlay();
+                    elements.autoPlayToggle.removeClass('active');
+                    elements.autoPlayText.text('已暂停');
+                    state.isAutoPlaying = false;
+                } else if (state.isAutoPlaying) {
+                    startAutoPlay();
+                    elements.autoPlayToggle.toggleClass('active', state.isAutoPlaying);
+                    elements.autoPlayText.text(state.isAutoPlaying ? '自动播放' : '已暂停');
+                }
+                
+                setTimeout(() => { state.isAnimating = false; }, 300);
+            }
+            
+            // 下一张
+            function nextSlide() {
+                const nextIndex = (state.currentIndex + 1) % config.totalSlides;
+                goToSlide(nextIndex);
+            }
+            
+            // 上一张
+            function prevSlide() {
+                const prevIndex = (state.currentIndex - 1 + config.totalSlides) % config.totalSlides;
+                goToSlide(prevIndex);
+            }
+            
+            // 更新位置
+            function updatePosition() {
+                elements.slides.css('transform', `translateX(-${state.currentIndex * 100}%)`);
+                elements.progressFill.css('width', '0%');
+                updateDots();
+            }
+            
+            // 开始自动播放
+            function startAutoPlay() {
+                stopAutoPlay();
+                
+                if (state.currentIndex < config.carouselSlides && state.isAutoPlaying) {
+                    state.autoPlayTimer = setInterval(() => {
+                        if (state.currentIndex < config.carouselSlides - 1) {
+                            nextSlide();
+                        } else if (state.currentIndex === config.carouselSlides - 1) {
+                            goToSlide(0);
+                        }
+                    }, config.intervalTime);
+                    
+                    updateProgress();
+                }
+                
+                elements.autoPlayToggle.addClass('active');
+                elements.autoPlayText.text('自动播放');
+            }
+            
+            // 停止自动播放
+            function stopAutoPlay() {
+                if (state.autoPlayTimer) {
+                    clearInterval(state.autoPlayTimer);
+                    state.autoPlayTimer = null;
+                }
+                elements.progressFill.css('width', '0%');
+            }
+            
+            // 切换自动播放
+            function toggleAutoPlay() {
+                if (state.currentIndex < config.carouselSlides) {
+                    state.isAutoPlaying = !state.isAutoPlaying;
+                    
+                    if (state.isAutoPlaying) {
+                        startAutoPlay();
+                    } else {
+                        stopAutoPlay();
+                        elements.autoPlayToggle.removeClass('active');
+                        elements.autoPlayText.text('已暂停');
+                    }
+                }
+            }
+            
+            // 更新进度条
+            function updateProgress() {
+                if (!state.isAutoPlaying || state.currentIndex >= config.carouselSlides) {
+                    elements.progressFill.css('width', '0%');
+                    return;
+                }
+                
+                let width = 0;
+                const startTime = Date.now();
+                const duration = config.intervalTime;
+                
+                function update() {
+                    if (!state.isAutoPlaying || state.currentIndex >= config.carouselSlides) {
+                        elements.progressFill.css('width', '0%');
+                        return;
+                    }
+                    
+                    const elapsed = Date.now() - startTime;
+                    width = (elapsed / duration) * 100;
+                    
+                    if (width <= 100) {
+                        elements.progressFill.css('width', `${width}%`);
+                        requestAnimationFrame(update);
+                    } else {
+                        elements.progressFill.css('width', '0%');
+                    }
+                }
+                
+                update();
+            }
+            
+            // 初始化
+            init();
+        });
+    </script>
+</body>
+</html>
